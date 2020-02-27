@@ -46,4 +46,5 @@ num = counts
 while (counts > 0):
     RunDeleteDialOuts()
     counts -= 1
+    
 print("Delete: ", num, "autodials")
