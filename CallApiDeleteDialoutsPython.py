@@ -1,39 +1,46 @@
 import requests
 import json
 
-def RunDeleteDialOuts (idDialouts):
-    dataResponseDelete = DeleteDialOuts(idDialouts, urlDel, headers, token)
-    if dataResponseDelete['errorCode'] == 10011:
-        CompleteDialOuts(idDialouts, urlComplete, headers, token)
-        dataResponseDelete = DeleteDialOuts(idDialouts, urlDel, headers, token)
-	if dataResponseDelete['errorCode'] == 10002
-		print ("Invalid token!")
-		exit()
+def RunDeleteDialOuts ():
+    dataResponseDelete = DeleteDialOuts()
+    if allDialOuts['status'] == 'error':
+        if dataResponseDelete['errorCode'] == 10011:
+            allDialOuts1 = requests.post(urlList, headers=headers, json={'token':tokenEnter}).json()
+            print(allDialOuts1['result'][0]['id'])
+            jsonRequest = {'token':tokenEnter, 'dialoutid':allDialOuts1['result'][0]['id']}
+            CompleteDialOuts()
+            DeleteDialOuts()
 
-def DeleteDialOuts(idDialouts, urlDel, headers, token):
-    jsonRequest = {'token':tokenEnter, 'dialoutid':idDialouts}
-    responseDelete = requests.post(urlDel, headers=headers, json=jsonRequest)
-    dataResponseDelete = responseDelete.json()
+def DeleteDialOuts():
+	allDialOuts1 = requests.post(urlList, headers=headers, json={'token':tokenEnter}).json()
+	jsonRequest = {'token':tokenEnter, 'dialoutid':allDialOuts1['result'][0]['id']}
+	responseDelete = requests.post(urlDel, headers=headers, json=jsonRequest)
+	dataResponseDelete = responseDelete.json()
     return (dataResponseDelete)
+    
+def CompleteDialOuts():
+    requests.post(urlComplete, headers=headers, json=jsonRequest)
 
-def CompleteDialOuts(idDialouts, urlComplete, headers, token):
-    jsonRequest = {'token':tokenEnter, 'dialoutid':idDialouts}
-    responseComplete = requests.post(urlComplete, headers=headers, json=jsonRequest)
-    dataResponseComplete = responseComplete.json()
-    return (dataResponseComplete)
+def CheckToken():
+	if allDialOuts['status'] == 'error':
+		if allDialOuts['errorCode'] == 10002:
+			print ("Invalid token!")
+			exit()
 
 urlDel = 'https://callapi.gravitel.ru/api/v1/deletedialout'
 urlList = 'https://callapi.gravitel.ru/api/v1/listdialouts'
 urlComplete = 'https://callapi.gravitel.ru/api/v1/completedialout'
 
+counts = 1;
 headers = {'Content-Type':'application/json'}
+tokenEnter = input("Enter token CallApi: ")
+allDialOuts = requests.post(urlList, headers=headers, json={'token':tokenEnter}).json()
+CheckToken()
 
-tokenEnter = input("Please enter token CallApi: ")
-token = {'token':tokenEnter}
+counts = int(input("Enter how many auto-dialing to remove: "))
 
-response = requests.post(urlList, headers=headers, json=token)
-dataResponse = response.json()
+jsonRequest = {'token':tokenEnter, 'dialoutid':allDialOuts['result'][0]['id']}
 
-idDialouts = dataResponse['result'][0]['id']
-
-RunDeleteDialOuts(idDialouts)
+while (counts > 0):
+	RunDeleteDialOuts()
+	counts -= 1
